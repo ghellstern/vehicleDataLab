@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+# Copyright 2017 IBM Corp. All Rights Reserved
+#
+# Licensed under the Apache License, Version 2.0 (the License);
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an AS IS BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script creates the IoT Platform device type and devices.
+
+showenv()
+{
+	echo IOT_ORG_ID=${IOT_ORG_ID}
+	echo IOT_API_KEY=${IOT_API_KEY}
+	echo IOT_AUTH_TOKEN=${IOT_AUTH_TOKEN}
+}
+
+if [ -z "${IOT_ORG_ID}" -o -z "${IOT_API_KEY}" -o -z "${IOT_AUTH_TOKEN}" ];
+then
+	echo Required environment variables missing
+	showenv
+	exit 1
+fi
+
+# Turn off history expansion to avoid nasties with ! in authentication keys
+set +H
+
+# Use POST device/types to create a device type for simulated cars
+echo Creating device type 'car'
+echo {\
+    \"id\":\"car\",\
+    \"description\":\"Device type for simulated cars\",\
+    \"classId\":\"Device\"\
+} |
+curl -H 'Content-Type: application/json' -H 'Accept: */*' -u ${IOT_API_KEY}:${IOT_AUTH_TOKEN} https://${IOT_ORG_ID}.internetofthings.ibmcloud.com/api/v0002/device/types -d @-
+echo
+
+# Use POST /bulk/devices/add to create 20 simulated cars as devices
+echo Creating 20 cars
+
+echo "[\
+{\"typeId\":\"car\",\"deviceId\":\"car1\",\"authToken\":\"token001\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car2\",\"authToken\":\"token002\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car3\",\"authToken\":\"token003\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car4\",\"authToken\":\"token004\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car5\",\"authToken\":\"token005\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car6\",\"authToken\":\"token006\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car7\",\"authToken\":\"token007\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car8\",\"authToken\":\"token008\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car9\",\"authToken\":\"token009\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car10\",\"authToken\":\"token010\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car11\",\"authToken\":\"token011\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car12\",\"authToken\":\"token012\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car13\",\"authToken\":\"token013\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car14\",\"authToken\":\"token014\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car15\",\"authToken\":\"token015\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car16\",\"authToken\":\"token016\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car17\",\"authToken\":\"token017\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car18\",\"authToken\":\"token018\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car19\",\"authToken\":\"token019\"},\
+{\"typeId\":\"car\",\"deviceId\":\"car20\",\"authToken\":\"token020\"}
+]" |
+curl -H 'Content-Type: application/json' -H 'Accept: */*' -u ${IOT_API_KEY}:${IOT_AUTH_TOKEN} https://${IOT_ORG_ID}.internetofthings.ibmcloud.com/api/v0002/bulk/devices/add -d @-
+echo
